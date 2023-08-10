@@ -49,6 +49,7 @@ struct ZjhColor
 	int B = 0;
 	ZjhColor() {}
 	ZjhColor(int inR, int inG, int inB) :R(inR), G(inG), B(inB) {}
+	static ZjhColor BackGroundColor() { return ZjhColor(12, 13, 28); }
 };
 
 class HilberLine

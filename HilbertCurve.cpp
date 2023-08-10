@@ -5,7 +5,6 @@
 
 #define MAX_LOADSTRING 100
 
-
 // 全局变量:
 HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
@@ -70,7 +69,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_HILBERTCURVE));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground = CreateSolidBrush(RGB(12, 13, 28));
+    wcex.hbrBackground = CreateSolidBrush(RGB(ZjhColor::BackGroundColor().R, ZjhColor::BackGroundColor().G, ZjhColor::BackGroundColor().B));
     wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_HILBERTCURVE);
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
@@ -115,6 +114,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             hilberUs_temp2 = item.Split(hWnd, hilbertUC);
             hilberUs_temp1.insert(hilberUs_temp1.end(), hilberUs_temp2.begin(), hilberUs_temp2.end());
         }
+        squareSide->DrawU(hWnd, ZjhColor::BackGroundColor());
         squareSide->hilberUs = hilberUs_temp1;
         squareSide->DrawU(hWnd, hilbertUC);
         break;
