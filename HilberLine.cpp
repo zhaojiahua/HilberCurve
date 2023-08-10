@@ -146,6 +146,7 @@ void HilberU::DrawLine(const HWND& hWnd, ZjhColor incolor,ZjhPoint2D point1,ZjhP
 	Polyline(hdc, (POINT*)pts, 2);
 }
 
+
 std::vector<HilberU> HilberU::Split(const HWND& hWnd, ZjhColor inC)
 {
 	std::vector<HilberU> hilbertUs;
@@ -154,13 +155,15 @@ std::vector<HilberU> HilberU::Split(const HWND& hWnd, ZjhColor inC)
 	hilbertUs.push_back(HilberU(mPoint2, mDirection, 0.5 * mEdgeLen));
 	hilbertUs.push_back(HilberU(mPoint3, mDirection, 0.5 * mEdgeLen));
 	hilbertUs.push_back(HilberU(mPoint4, dirPoint.Rotate(-HALFPI).GetDirection(), 0.5 * mEdgeLen));
-	for (HilberU var : hilbertUs)
-	{
-		var.Draw(hWnd, inC);
-	}
-	DrawLine(hWnd, inC, hilbertUs[0].mPoint1, hilbertUs[1].mPoint1);
-	DrawLine(hWnd, inC, hilbertUs[1].mPoint4, hilbertUs[2].mPoint1);
-	DrawLine(hWnd, inC, hilbertUs[2].mPoint4, hilbertUs[3].mPoint4);
+	//四个U共16个点
+	int pts[] = { hilbertUs[0].mPoint4.X,hilbertUs[0].mPoint4.Y, hilbertUs[0].mPoint3.X,hilbertUs[0].mPoint3.Y, hilbertUs[0].mPoint2.X,hilbertUs[0].mPoint2.Y ,hilbertUs[0].mPoint1.X,hilbertUs[0].mPoint1.Y,
+					   hilbertUs[1].mPoint1.X,hilbertUs[1].mPoint1.Y, hilbertUs[1].mPoint2.X,hilbertUs[1].mPoint2.Y, hilbertUs[1].mPoint3.X,hilbertUs[1].mPoint3.Y ,hilbertUs[1].mPoint4.X,hilbertUs[1].mPoint4.Y,
+					   hilbertUs[2].mPoint1.X,hilbertUs[2].mPoint1.Y, hilbertUs[2].mPoint2.X,hilbertUs[2].mPoint2.Y, hilbertUs[2].mPoint3.X,hilbertUs[2].mPoint3.Y ,hilbertUs[2].mPoint4.X,hilbertUs[2].mPoint4.Y,
+					   hilbertUs[3].mPoint4.X,hilbertUs[3].mPoint4.Y, hilbertUs[3].mPoint3.X,hilbertUs[3].mPoint3.Y, hilbertUs[3].mPoint2.X,hilbertUs[3].mPoint2.Y ,hilbertUs[3].mPoint1.X,hilbertUs[3].mPoint1.Y };
+	HDC hdc = GetDC(hWnd);
+	HPEN hpen = CreatePen(PS_SOLID, 1, RGB(inC.R, inC.G, inC.B));
+	SelectObject(hdc, hpen);
+	Polyline(hdc, (POINT*)pts, 16);
 	return hilbertUs;
 }
 
