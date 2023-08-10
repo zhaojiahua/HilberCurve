@@ -81,6 +81,9 @@ class HilberU
 public:
 	HilberU(ZjhPoint2D inP1, ZjhPoint2D inP2, ZjhPoint2D inP3, ZjhPoint2D inP4);
 	HilberU(ZjhPoint2D center, ZjhDirection inDir, double inLen);
+	ZjhDirection GetDirection() { return mDirection; }
+	std::vector<ZjhPoint2D> GetPoints();
+	std::vector<ZjhPoint2D> GetReversePoints();
 	void Draw(const HWND& hWnd, ZjhColor incolor);
 	void DrawLine(const HWND& hWnd, ZjhColor incolor, ZjhPoint2D point1, ZjhPoint2D point2);
 	std::vector<HilberU> Split(const HWND& hWnd,ZjhColor inC);
@@ -93,12 +96,14 @@ class SquareSide
 	ZjhPoint2D mPoint2;
 	ZjhPoint2D mPoint3;
 	ZjhPoint2D mPoint4;
+
 private:
 	SquareSide();
 	SquareSide(ZjhPoint2D inP1, ZjhPoint2D inP2, ZjhPoint2D inP3, ZjhPoint2D inP4)
 		:mPoint1(inP1), mPoint2(inP2), mPoint3(inP3), mPoint4(inP4) {}
 public:
-	void Draw(const HWND& hWnd, ZjhColor incolor);
+	void DrawSide(const HWND& hWnd, ZjhColor incolor);
+	void DrawU(const HWND& hWnd, ZjhColor incolor);
 	static SquareSide* instance;
 	static SquareSide* GetInstance();
 

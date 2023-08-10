@@ -110,12 +110,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         squareSide->backgroundC.R = rand() % 255;
         squareSide->backgroundC.G = rand() % 255;
         squareSide->backgroundC.B = rand() % 255;
-        squareSide->Draw(hWnd, squareSide->backgroundC);
+        squareSide->DrawSide(hWnd, squareSide->backgroundC);
         for (HilberU item : squareSide->hilberUs) {
             hilberUs_temp2 = item.Split(hWnd, hilbertUC);
             hilberUs_temp1.insert(hilberUs_temp1.end(), hilberUs_temp2.begin(), hilberUs_temp2.end());
         }
         squareSide->hilberUs = hilberUs_temp1;
+        squareSide->DrawU(hWnd, hilbertUC);
         break;
     case WM_COMMAND:
         {
@@ -139,7 +140,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
             //首先绘制外框
-            squareSide->Draw(hWnd, squareSide->backgroundC);
+            squareSide->DrawSide(hWnd, squareSide->backgroundC);
             //绘制一个希尔伯特U型折线
             HilberU hilberU = HilberU(ZjhPoint2D(512, 512), ZjhDirection::Down, 512);
             hilberU.Draw(hWnd, hilbertUC);

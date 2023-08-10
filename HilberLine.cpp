@@ -60,7 +60,7 @@ SquareSide::SquareSide()
 	hilberUs.clear();
 }
 
-void SquareSide::Draw(const HWND& hWnd, ZjhColor incolor)
+void SquareSide::DrawSide(const HWND& hWnd, ZjhColor incolor)
 {
 	//设置边框线宽
 	HDC hdc = GetDC(hWnd);
@@ -72,6 +72,37 @@ void SquareSide::Draw(const HWND& hWnd, ZjhColor incolor)
 	SelectObject(hdc, hpen);
 	int pts[] = { round(mPoint1.X),round(mPoint1.Y),round(mPoint2.X),round(mPoint2.Y),round(mPoint3.X),round(mPoint3.Y),round(mPoint4.X),round(mPoint4.Y),round(mPoint1.X),round(mPoint1.Y) };//四舍五入
 	Polyline(hdc, (POINT*)pts, 5);
+}
+
+void SquareSide::DrawU(const HWND& hWnd, ZjhColor incolor)
+{
+	if (!hilberUs.empty()) {
+		int pointsnum = hilberUs.size() * 8;//每次根据U型折线的个数确定分配内存空间的大小
+		int* tempPtBuffer = (int*)malloc(sizeof(int) * pointsnum);
+		if (tempPtBuffer) {//malloc分配的内存可能会因为内存不足而返回空
+			for (int i = 0; i < hilberUs.size(); ++i) {
+				std::vector<ZjhPoint2D> tempPts;
+				if (hilberUs[i].GetDirection() == ZjhDirection::Down || hilberUs[i].GetDirection() == ZjhDirection::Up) {
+					tempPts = hilberUs[i].GetPoints();
+				}
+				else {
+					tempPts = hilberUs[i].GetReversePoints();
+				}
+				*(tempPtBuffer + i*8) = tempPts[0].X; *(tempPtBuffer + i*8 + 1) = tempPts[0].Y;
+				*(tempPtBuffer + i*8 + 2) = tempPts[1].X; *(tempPtBuffer + i*8 + 3) = tempPts[1].Y;
+				*(tempPtBuffer + i*8 + 4) = tempPts[2].X; *(tempPtBuffer + i*8 + 5) = tempPts[2].Y;
+				*(tempPtBuffer + i*8 + 6) = tempPts[3].X; *(tempPtBuffer + i*8 + 7) = tempPts[3].Y;
+			}
+		}
+		else {
+			throw("malloc memery is null");
+		}
+		//一次性绘制所有点
+		HDC hdc = GetDC(hWnd);
+		HPEN hpen = CreatePen(PS_SOLID, 1, RGB(incolor.R, incolor.G, incolor.B));
+		SelectObject(hdc, hpen);
+		Polyline(hdc, (POINT*)tempPtBuffer, pointsnum * 0.5);
+	}
 }
 
 SquareSide* SquareSide::GetInstance()
@@ -128,6 +159,26 @@ HilberU::HilberU(ZjhPoint2D center, ZjhDirection inDir, double inLen)
 	}
 }
 
+std::vector<ZjhPoint2D> HilberU::GetPoints()
+{
+	std::vector<ZjhPoint2D> tempResults;
+	tempResults.push_back(mPoint1);
+	tempResults.push_back(mPoint2);
+	tempResults.push_back(mPoint3);
+	tempResults.push_back(mPoint4);
+	return tempResults;
+}
+
+std::vector<ZjhPoint2D> HilberU::GetReversePoints()
+{
+	std::vector<ZjhPoint2D> tempResults;
+	tempResults.push_back(mPoint4);
+	tempResults.push_back(mPoint3);
+	tempResults.push_back(mPoint2);
+	tempResults.push_back(mPoint1);
+	return tempResults;
+}
+
 void HilberU::Draw(const HWND& hWnd, ZjhColor incolor)
 {
 	HDC hdc = GetDC(hWnd);
@@ -151,19 +202,28 @@ std::vector<HilberU> HilberU::Split(const HWND& hWnd, ZjhColor inC)
 {
 	std::vector<HilberU> hilbertUs;
 	ZjhPoint2D dirPoint = ZjhPoint2D::GetPoint2D(mDirection);
-	hilbertUs.push_back(HilberU(mPoint1, dirPoint.Rotate(HALFPI).GetDirection(), 0.5 * mEdgeLen));
-	hilbertUs.push_back(HilberU(mPoint2, mDirection, 0.5 * mEdgeLen));
-	hilbertUs.push_back(HilberU(mPoint3, mDirection, 0.5 * mEdgeLen));
-	hilbertUs.push_back(HilberU(mPoint4, dirPoint.Rotate(-HALFPI).GetDirection(), 0.5 * mEdgeLen));
-	//四个U共16个点
-	int pts[] = { hilbertUs[0].mPoint4.X,hilbertUs[0].mPoint4.Y, hilbertUs[0].mPoint3.X,hilbertUs[0].mPoint3.Y, hilbertUs[0].mPoint2.X,hilbertUs[0].mPoint2.Y ,hilbertUs[0].mPoint1.X,hilbertUs[0].mPoint1.Y,
-					   hilbertUs[1].mPoint1.X,hilbertUs[1].mPoint1.Y, hilbertUs[1].mPoint2.X,hilbertUs[1].mPoint2.Y, hilbertUs[1].mPoint3.X,hilbertUs[1].mPoint3.Y ,hilbertUs[1].mPoint4.X,hilbertUs[1].mPoint4.Y,
-					   hilbertUs[2].mPoint1.X,hilbertUs[2].mPoint1.Y, hilbertUs[2].mPoint2.X,hilbertUs[2].mPoint2.Y, hilbertUs[2].mPoint3.X,hilbertUs[2].mPoint3.Y ,hilbertUs[2].mPoint4.X,hilbertUs[2].mPoint4.Y,
-					   hilbertUs[3].mPoint4.X,hilbertUs[3].mPoint4.Y, hilbertUs[3].mPoint3.X,hilbertUs[3].mPoint3.Y, hilbertUs[3].mPoint2.X,hilbertUs[3].mPoint2.Y ,hilbertUs[3].mPoint1.X,hilbertUs[3].mPoint1.Y };
-	HDC hdc = GetDC(hWnd);
-	HPEN hpen = CreatePen(PS_SOLID, 1, RGB(inC.R, inC.G, inC.B));
-	SelectObject(hdc, hpen);
-	Polyline(hdc, (POINT*)pts, 16);
+	if (mDirection == ZjhDirection::Down || mDirection == ZjhDirection::Up) {
+		hilbertUs.push_back(HilberU(mPoint1, dirPoint.Rotate(HALFPI).GetDirection(), 0.5 * mEdgeLen));
+		hilbertUs.push_back(HilberU(mPoint2, mDirection, 0.5 * mEdgeLen));
+		hilbertUs.push_back(HilberU(mPoint3, mDirection, 0.5 * mEdgeLen));
+		hilbertUs.push_back(HilberU(mPoint4, dirPoint.Rotate(-HALFPI).GetDirection(), 0.5 * mEdgeLen));
+	}
+	else {
+		hilbertUs.push_back(HilberU(mPoint4, dirPoint.Rotate(-HALFPI).GetDirection(), 0.5 * mEdgeLen));
+		hilbertUs.push_back(HilberU(mPoint3, mDirection, 0.5 * mEdgeLen));
+		hilbertUs.push_back(HilberU(mPoint2, mDirection, 0.5 * mEdgeLen));
+		hilbertUs.push_back(HilberU(mPoint1, dirPoint.Rotate(HALFPI).GetDirection(), 0.5 * mEdgeLen));
+	}
+
+	////四个U共16个点
+	//int pts[] = { hilbertUs[0].mPoint4.X,hilbertUs[0].mPoint4.Y, hilbertUs[0].mPoint3.X,hilbertUs[0].mPoint3.Y, hilbertUs[0].mPoint2.X,hilbertUs[0].mPoint2.Y ,hilbertUs[0].mPoint1.X,hilbertUs[0].mPoint1.Y,
+	//				   hilbertUs[1].mPoint1.X,hilbertUs[1].mPoint1.Y, hilbertUs[1].mPoint2.X,hilbertUs[1].mPoint2.Y, hilbertUs[1].mPoint3.X,hilbertUs[1].mPoint3.Y ,hilbertUs[1].mPoint4.X,hilbertUs[1].mPoint4.Y,
+	//				   hilbertUs[2].mPoint1.X,hilbertUs[2].mPoint1.Y, hilbertUs[2].mPoint2.X,hilbertUs[2].mPoint2.Y, hilbertUs[2].mPoint3.X,hilbertUs[2].mPoint3.Y ,hilbertUs[2].mPoint4.X,hilbertUs[2].mPoint4.Y,
+	//				   hilbertUs[3].mPoint4.X,hilbertUs[3].mPoint4.Y, hilbertUs[3].mPoint3.X,hilbertUs[3].mPoint3.Y, hilbertUs[3].mPoint2.X,hilbertUs[3].mPoint2.Y ,hilbertUs[3].mPoint1.X,hilbertUs[3].mPoint1.Y };
+	//HDC hdc = GetDC(hWnd);
+	//HPEN hpen = CreatePen(PS_SOLID, 1, RGB(inC.R, inC.G, inC.B));
+	//SelectObject(hdc, hpen);
+	//Polyline(hdc, (POINT*)pts, 16);
 	return hilbertUs;
 }
 
