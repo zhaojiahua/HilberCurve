@@ -182,9 +182,9 @@ ZjhPoint2D ZjhPoint2D::GetPoint2D(ZjhDirection inDir)
 	switch (inDir)
 	{
 	case Up:
-		return ZjhPoint2D(-1, 0);
-	case Left:
 		return ZjhPoint2D(0, -1);
+	case Left:
+		return ZjhPoint2D(-1, 0);
 	case Down:
 		return ZjhPoint2D(0, 1);
 	case Right:
